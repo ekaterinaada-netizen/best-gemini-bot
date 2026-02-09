@@ -9,9 +9,6 @@ import httpx  # Нужно для работы через прокси
 
 # --- НАСТРОЙКИ ---
 TOKEN = os.getenv("BOT_TOKEN")
-# Если у тебя есть прокси (SOCKS5 или HTTP), впиши его сюда. 
-# Без него итальянский ключ в РФ работать не будет.
-PROXY_URL = "http://username:password@proxy_address:port" 
 
 bot = telebot.TeleBot(TOKEN)
 
@@ -114,5 +111,6 @@ if __name__ == "__main__":
         bot.polling(none_stop=True, timeout=60)
     except Exception as e:
         print(f"❌ Критическая ошибка при запуске: {e}")
+
 
 
