@@ -1,3 +1,4 @@
+import os
 import telebot
 import google.generativeai as genai
 from PIL import Image, ImageDraw, ImageFont
@@ -106,6 +107,12 @@ def send_surprise(message):
     gift = surprises[hash(message.text) % 4]
     bot.send_message(message.chat.id, f"{gift}\n\nТвой запрос обработан особым образом! ✨")
 
-print("🎉 БОТ ЗАПУЩЕН!")
+# --- КНОПКА ПУСКА ---
+if __name__ == "__main__":
+    try:
+        print("🎉 БОТ ЗАПУЩЕН!")
+        bot.polling(none_stop=True, timeout=60)
+    except Exception as e:
+        print(f"❌ Критическая ошибка при запуске: {e}")
 
-bot.infinity_polling()
+
