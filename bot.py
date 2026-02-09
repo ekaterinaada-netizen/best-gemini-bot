@@ -5,6 +5,17 @@ from PIL import Image, ImageDraw, ImageFont
 import io
 from datetime import datetime
 import textwrap
+import http.server
+import threading
+
+# Функция-обманка для Render
+def run_dummy_server():
+    server_address = ('', 10000)
+    httpd = http.server.HTTPServer(server_address, http.server.SimpleHTTPRequestHandler)
+    httpd.serve_forever()
+
+# Запускаем обманку в отдельном потоке
+threading.Thread(target=run_dummy_server, daemon=True).start()
 
 # --- НАСТРОЙКИ ---
 TOKEN = os.getenv("BOT_TOKEN")
@@ -110,6 +121,7 @@ if __name__ == "__main__":
         bot.polling(none_stop=True, timeout=60)
     except Exception as e:
         print(f"❌ Критическая ошибка при запуске: {e}")
+
 
 
 
