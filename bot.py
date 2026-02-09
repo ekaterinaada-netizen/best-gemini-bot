@@ -14,15 +14,12 @@ PROXY_URL = "http://username:password@proxy_address:port"
 
 bot = telebot.TeleBot(TOKEN)
 
-# ✅ НАСТРОЙКА GEMINI С УЧЕТОМ ЛОКАЦИИ
-# Мы создаем специальный клиент, который "спрячет" твой IP
-client = genai.configure(
-    api_key=os.getenv("GEMINI_KEY")),
-    # Если прокси нет, удали строчку ниже, но тогда готовься к ошибке 403
-    # transport={'http_client': httpx.Client(proxies=PROXY_URL)} 
-)
+# ✅ НАСТРОЙКА GEMINI
+# Render сам подставит твой итальянский ключ вместо этой команды
+genai.configure(api_key=os.getenv("GEMINI_KEY"))
 
-model = genai.GenerativeModel('gemini-2.5-flash')
+# Самая актуальная и быстрая модель на сегодня
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 cache = {}
 
@@ -110,4 +107,5 @@ def send_surprise(message):
     bot.send_message(message.chat.id, f"{gift}\n\nТвой запрос обработан особым образом! ✨")
 
 print("🎉 БОТ ЗАПУЩЕН!")
+
 bot.infinity_polling()
