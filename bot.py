@@ -53,4 +53,8 @@ def img_h(message):
 def chat_h(message):
     bot.reply_to(message, get_ai_response(message.text))
 
-bot.infinity_polling()
+if __name__ == "__main__":
+    print("🎉 СИСТЕМА ЗАПУЩЕНА")
+    bot.infinity_polling(timeout=90, long_polling_timeout=30)
+
+
