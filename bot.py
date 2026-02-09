@@ -5,7 +5,6 @@ from PIL import Image, ImageDraw, ImageFont
 import io
 from datetime import datetime
 import textwrap
-import httpx  # Нужно для работы через прокси
 
 # --- НАСТРОЙКИ ---
 TOKEN = os.getenv("BOT_TOKEN")
@@ -111,6 +110,7 @@ if __name__ == "__main__":
         bot.polling(none_stop=True, timeout=60)
     except Exception as e:
         print(f"❌ Критическая ошибка при запуске: {e}")
+
 
 
 
