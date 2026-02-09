@@ -20,7 +20,7 @@ GEMINI_KEY = os.getenv("GEMINI_KEY")
 
 bot = telebot.TeleBot(TOKEN)
 genai.configure(api_key=GEMINI_KEY)
-model = genai.GenerativeModel('gemini-1.5-flash')
+model = genai.GenerativeModel('gemini-1.5-flash-latest')
 
 # 3. ЛОГИКА БОТА
 @bot.message_handler(commands=['start'])
@@ -39,3 +39,4 @@ def chat(message):
 if __name__ == "__main__":
     print("🎉 БОТ ЗАПУЩЕН!")
     bot.infinity_polling(timeout=60, long_polling_timeout=30)
+
