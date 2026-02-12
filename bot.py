@@ -1,64 +1,54 @@
-import os, telebot, threading, http.server, time
+import os, telebot, threading, http.server, urllib.parse
 from google import genai
 from google.genai import types
 
-# Сервер для Render
+# Сервер-заглушка
 def run_server():
-    port = int(os.environ.get("PORT", 10000))
-    http.server.HTTPServer(('', port), http.server.SimpleHTTPRequestHandler).serve_forever()
+    http.server.HTTPServer(('', int(os.environ.get("PORT", 10000))), http.server.SimpleHTTPRequestHandler).serve_forever()
 threading.Thread(target=run_server, daemon=True).start()
 
-# Инициализация
-token = os.getenv("BOT_TOKEN")
-bot = telebot.TeleBot(token)
+bot = telebot.TeleBot(os.getenv("BOT_TOKEN"))
 client = genai.Client(api_key=os.getenv("GEMINI_KEY"))
-
-# УБИВАЕМ КОНФЛИКТЫ ПРИ СТАРТЕ
-bot.remove_webhook()
-time.sleep(1) # Даем Telegram время на сброс
-
 user_data = {}
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    bot.reply_to(message, "🍌 Nano Banana 2.5 (AI Studio Style) готова! Пришли фото.")
+    bot.reply_to(message, "🍌 Nano Banana перешла в стабильный режим! Пришли фото.")
 
 @bot.message_handler(content_types=['photo'])
 def handle_photo(message):
-    file_info = bot.get_file(message.photo[-1].file_id)
-    user_data[message.chat.id] = bot.download_file(file_info.file_path)
-    bot.reply_to(message, "📸 Фото в памяти! Напиши стиль арт-обработки.")
+    user_data[message.chat.id] = bot.download_file(bot.get_file(message.photo[-1].file_id).file_path)
+    bot.reply_to(message, "📸 Вижу! В каком стиле сделать арт?")
 
 @bot.message_handler(func=lambda m: m.chat.id in user_data)
 def handle_style(message):
     chat_id = message.chat.id
+    style = message.text
     photo_bytes = user_data[chat_id]
-    
+    bot.send_message(chat_id, "🧠 Gemini анализирует черты лица...")
+
     try:
-        # Структура ТОЧЬ-В-ТОЧЬ как на твоем скриншоте из Get Code
+        # 1. Используем 1.5 Flash для ОПИСАНИЯ (она почти всегда доступна)
         response = client.models.generate_content(
-            model="gemini-2.5-flash-image",
+            model="gemini-1.5-flash", 
             contents=[
-                types.Content(
-                    role="user",
-                    parts=[
-                        types.Part.from_bytes(data=photo_bytes, mime_type="image/jpeg"),
-                        types.Part.from_text(text=f"Transformation: {message.text}")
-                    ]
-                )
+                types.Part.from_bytes(data=photo_bytes, mime_type="image/jpeg"),
+                types.Part.from_text(text="Describe this person's appearance briefly for an AI portrait generator.")
             ]
         )
+        description = response.text
+
+        # 2. Рисуем через Pollinations (без лимитов!)
+        bot.send_message(chat_id, "🎨 Pollinations создает шедевр...")
+        full_prompt = f"Professional digital art, {style}, {description}"
+        encoded_prompt = urllib.parse.quote(full_prompt)
+        image_url = f"https://pollinations.ai/p/{encoded_prompt}?width=1024&height=1024&seed={os.urandom(4).hex()}"
         
-        if response.generated_images:
-            for img in response.generated_images:
-                bot.send_photo(chat_id, img.image_bytes)
-        else:
-            bot.send_message(chat_id, "Gemini вернула текст вместо фото. Попробуй другой промт.")
-            
+        bot.send_photo(chat_id, image_url, caption=f"✨ Стиль: {style}")
+
     except Exception as e:
-        bot.send_message(chat_id, f"❌ Ошибка API: {e}")
+        bot.reply_to(message, f"❌ Ошибка: {e}")
     finally:
         del user_data[chat_id]
 
-print("🚀 Запуск без конфликтов...")
-bot.infinity_polling(timeout=90, long_polling_timeout=5)
+bot.infinity_polling()
